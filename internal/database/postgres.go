@@ -15,7 +15,10 @@ func NewPostgresDB() *gorm.DB {
 		log.Fatal("DATABASE_URL is not set!")
 	}
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		PrepareStmt: false, // MATIKAN INI
+	})
+
 	if err != nil {
 		log.Fatalf("Failed to connect to supabase via GORM: %v", err)
 	}

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Internal — Bank Central Asia Blue Resignation/Leave form</title>
+    <style>
+        :root {
+            --bg: #0b212a;     /* Dark Navy khas Bear */
+            --text: #e0e0e0;
+            --link: #82aaff;
+            --border: #2a3f47;
+            --accent: #fff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            max-width: 650px;
+            margin: 60px auto;
+            padding: 0 20px;
+        }
+
+        h1, h2, h3 { color: var(--accent); margin-bottom: 10px; }
+        .mono { font-family: monospace; font-size: 0.9em; color: #888; }
+        .hidden { display: none; }
+        
+        /* Role Switcher - Simple khas Bear Blog */
+        .role-nav { margin-bottom: 40px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        .role-nav button { background: none; border: none; color: var(--link); cursor: pointer; text-decoration: underline; font-size: 0.9em; margin-right: 15px; }
+        .role-nav button.active { color: #fff; font-weight: bold; text-decoration: none; }
+
+        input, textarea {
+            background: #152d35; border: 1px solid var(--border); color: #fff;
+            padding: 10px; width: 100%; margin-bottom: 15px; box-sizing: border-box; outline: none;
+        }
+
+        button.action {
+            background: var(--link); border: none; padding: 10px 20px;
+            color: var(--bg); font-weight: bold; cursor: pointer;
+        }
+
+        .feed-item { border-top: 1px solid var(--border); padding: 20px 0; margin-top: 20px; }
+        footer { margin-top: 100px; font-size: 0.8em; color: #566970; border-top: 1px solid var(--border); padding-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>ʕ•ᴥ•? 🐚 Internal — Bank Central Asia Blue Resignation/Leave form</h1>
+        <div class="role-nav">
+            <button id="btn-employee" class="active" onclick="switchRole('employee')">I'm an Employee</button>
+            <button id="btn-admin" onclick="switchRole('admin')">I'm an Admin</button>
+        </div>
+    </header>
+
+    <main>
+        <div id="view-employee">
+            <h3># Submit Request</h3>
+            <p class="mono">Submit your leave or resignation request below.</p>
+            <input id="userId" type="text" placeholder="Your Employee ID (e.g. 1)">
+            <textarea id="reason" placeholder="Reason for request..." rows="3"></textarea>
+            <button class="action" onclick="submitRequest()">Submit Form</button>
+
+            <h3 style="margin-top: 60px;"># Your History</h3>
+            <div id="myHistory" class="mono italic">No requests submitted yet.</div>
+        </div>
+
+        <div id="view-admin" class="hidden">
+            <h3># Admin Panel</h3>
+            <p class="mono italic">Viewing all incoming requests from the team.</p>
+            <div id="allRequests">
+                <p class="mono">Fetching global records...</p>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>Built and maintained by Neval. <br> No trackers, no nonsense.</p>
+    </footer>
+
+    <script>
+        const api = '/api';
+        let currentRole = 'employee';
+
+        function switchRole(role) {
+            currentRole = role;
+            document.getElementById('view-employee').classList.toggle('hidden', role !== 'employee');
+            document.getElementById('view-admin').classList.toggle('hidden', role !== 'admin');
+            document.getElementById('btn-employee').classList.toggle('active', role === 'employee');
+            document.getElementById('btn-admin').classList.toggle('active', role === 'admin');
+            
+            if(role === 'admin') loadAdminView();
+        }
+
+        async function submitRequest() {
+            const userId = document.getElementById('userId').value;
+            const reason = document.getElementById('reason').value;
+            if(!userId || !reason) return alert("Fill all fields");
+
+            await fetch(`${api}/leaves`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: parseInt(userId), reason: reason })
+            });
+            alert("Request Submitted!");
+            loadEmployeeHistory(userId);
+        }
+
+        async function loadEmployeeHistory(id) {
+            const res = await fetch(`${api}/leaves`); // Di real app, ini harusnya filter by UserID
+            const data = await res.json();
+            const list = document.getElementById('myHistory');
+            const myData = data.filter(l => l.user_id == id);
+            
+            list.innerHTML = myData.map(l => `
+                <div class="feed-item">
+                    <span class="mono">[${l.status}]</span> ${l.reason}
+                </div>
+            `).join('');
+        }
+
+        async function loadAdminView() {
+            const res = await fetch(`${api}/leaves`);
+            const data = await res.json();
+            const list = document.getElementById('allRequests');
+            
+            list.innerHTML = data.map(l => `
+                <div class="feed-item">
+                    <b>Emp ID: ${l.user_id}</b> — <span style="color: #ffcc00;">${l.status}</span>
+                    <p>${l.reason}</p>
+                    ${l.status === 'pending' ? `<button onclick="approve(${l.ID})" style="color: var(--link); border:none; background:none; text-decoration:underline; cursor:pointer;">Approve Request</button>` : ''}
+                </div>
+            `).join('');
+        }
+
+        async function approve(id) {
+            await fetch(`${api}/leaves/${id}/approve`, { method: 'PATCH' });
+            loadAdminView();
+        }
+    </script>
+</body>
+</html>
