@@ -4,6 +4,9 @@ import (
 	"log"
 	"os"
 	"resign-api/internal/database"
+	"resign-api/internal/handler"
+	"resign-api/internal/repository"
+	"resign-api/internal/usecase"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
@@ -12,31 +15,55 @@ import (
 func main() {
 	_ = godotenv.Load()
 
-	//import class to main to called the function to connect to supabase
+	// 1. Koneksi Database (Sekaligus AutoMigrate di dalamnya)
 	db := database.NewPostgresDB()
+
+	// 2. Wiring Up (Menyambungkan Kabel)
+	// --- USER ---
+	userRepo := repository.NewUserRepository(db)
+	userUC := usecase.NewUserUsecase(userRepo)
+	userHdl := handler.NewUserHandler(userUC)
+
+	// --- LEAVE ---
+	leaveRepo := repository.NewLeaveRepository(db)
+	leaveUC := usecase.NewLeaveUsecase(leaveRepo, userRepo) // Butuh userRepo buat cek kuota
+	leaveHdl := handler.NewLeaveHandler(leaveUC)
+
+	// --- RESIGN ---
+	resignRepo := repository.NewResignationRepository(db)
+	resignUC := usecase.NewResignationUsecase(resignRepo)
+	resignHdl := handler.NewResignationHandler(resignUC)
 
 	app := fiber.New()
 
+	app.Static("/", "./public")
+
+	// 3. Routing
+	api := app.Group("/api") // Grouping biar rapi /api/...
+
+	// Route User
+	api.Post("/users", userHdl.Register)
+	api.Get("/users/:id", userHdl.GetProfile)
+
+	// Route Leave
+	api.Post("/leaves", leaveHdl.Apply)
+	api.Get("/leaves", leaveHdl.GetHistory)
+	api.Patch("/leaves/:id/approve", leaveHdl.Approve)
+
+	// Route Resign
+	api.Post("/resignations", resignHdl.Submit)
+	api.Patch("/resignations/:id/approve", resignHdl.Approve)
+
+	// Health Check
 	app.Get("/ping", func(c *fiber.Ctx) error {
-		sqlDB, _ := db.DB()
-		err := sqlDB.Ping()
-
-		status := "OK"
-		if err != nil {
-			status = "Error connecting to database"
-		}
-
-		return c.JSON(fiber.Map{
-			"message":   "Fiber is running!",
-			"db_status": status,
-		})
+		return c.JSON(fiber.Map{"status": "OK", "message": "Backend is ready to rock!"})
 	})
 
 	port := os.Getenv("PORT")
 	if port == "" {
-		log.Println("port not set in env.")
+		port = "8686" // Default port kalau di .env gak ada
 	}
 
-	log.Printf("Server is starting in port  %s...", port)
+	log.Printf("🚀 Server is starting on port %s...", port)
 	log.Fatal(app.Listen(":" + port))
 }
