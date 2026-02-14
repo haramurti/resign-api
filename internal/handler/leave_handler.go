@@ -3,6 +3,7 @@ package handler
 import (
 	"resign-api/internal/domain"
 	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -17,18 +18,39 @@ func NewLeaveHandler(u domain.LeaveUsecase) *LeaveHandler {
 
 // Apply: User mengajukan cuti
 func (h *LeaveHandler) Apply(c *fiber.Ctx) error {
-	var leave domain.LeaveRequest
-	if err := c.BodyParser(&leave); err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "Data input tidak valid"})
+	// Kita pake struct temporary biar gampang parsing tanggal dari string JSON
+	var input struct {
+		UserID    uint   `json:"user_id"`
+		StartDate string `json:"start_date"`
+		EndDate   string `json:"end_date"`
+		Reason    string `json:"reason"`
+	}
+
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Format input salah"})
+	}
+
+	// Konversi string tanggal ke format time.Time Go
+	start, _ := time.Parse("2006-01-02", input.StartDate)
+	end, _ := time.Parse("2006-01-02", input.EndDate)
+
+	leave := domain.LeaveRequest{
+		UserID:    input.UserID,
+		StartDate: start,
+		EndDate:   end,
+		Reason:    input.Reason,
+		Status:    "pending",
 	}
 
 	ctx := c.UserContext()
 	if err := h.usecase.Apply(ctx, &leave); err != nil {
-		// Pesan error dari usecase (misal: jatah habis) bakal dikirim ke sini
 		return c.Status(400).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return c.Status(201).JSON(fiber.Map{"message": "Pengajuan cuti berhasil dikirim", "data": leave})
+	return c.Status(201).JSON(fiber.Map{
+		"message": "Cuti dari " + input.StartDate + " sampai " + input.EndDate + " berhasil diajukan",
+		"data":    leave,
+	})
 }
 
 // GetHistory: Ambil semua daftar cuti (buat HR)
