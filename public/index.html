@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Internal — POROS Corp</title>
     <style>
+        /* Bear Blog Dark Mode Palette */
         :root {
-            --bg: #0b212a;     /* Bear Dark Mode */
-            --text: #e0e0e0;
-            --link: #82aaff;
-            --border: #2a3f47;
+            --bg: #0b212a;     /* Deep Navy */
+            --text: #e0e0e0;   /* Bear Off-white */
+            --link: #82aaff;   /* Soft Blue */
+            --border: #2a3f47; /* Subtle Divider */
             --accent: #fff;
         }
 
@@ -27,10 +28,12 @@
         .mono { font-family: monospace; font-size: 0.85em; color: #888; }
         .hidden { display: none; }
         
+        /* Navigation Style khas Bear Blog */
         nav { margin-bottom: 40px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
         nav button { background: none; border: none; color: var(--link); cursor: pointer; text-decoration: underline; font-size: 0.9em; margin-right: 15px; }
         nav button.active { color: #fff; font-weight: bold; text-decoration: none; }
 
+        /* Form Elements */
         .form-group { margin-top: 30px; }
         .date-row { display: flex; gap: 15px; margin-bottom: 15px; }
         .date-item { flex: 1; }
@@ -38,9 +41,9 @@
 
         input, textarea {
             background: #152d35; border: 1px solid var(--border); color: #fff;
-            padding: 10px; width: 100%; box-sizing: border-box; outline: none; border-radius: 0px; 
+            padding: 10px; width: 100%; box-sizing: border-box; outline: none;
+            border-radius: 0px; 
         }
-
         textarea { margin-top: 10px; min-height: 80px; }
 
         button.action {
@@ -48,15 +51,41 @@
             color: var(--bg); font-weight: bold; cursor: pointer; margin-top: 10px;
         }
 
-        .item { border-top: 1px dashed var(--border); padding: 20px 0; margin-top: 20px; }
+        /* Status Badge Styling */
+        .item { 
+            border-top: 1px dashed var(--border); 
+            padding: 20px 0; 
+            margin-top: 20px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: flex-start; 
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            font-size: 0.65em;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+        .status-pending { background: #1a3a4a; color: #82aaff; border-color: #82aaff; }
+        .status-approved { background: #163a2a; color: #4ade80; border-color: #4ade80; }
+        .status-rejected { background: #3a1616; color: #f87171; border-color: #f87171; }
+        .dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
         footer { margin-top: 100px; font-size: 0.8em; color: #566970; border-top: 1px solid var(--border); padding-top: 20px; }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>ʕ•ᴥ•? Bear Internal</h1>
-        <p class="mono">Session: <b id="profile-name">Neval</b> (ID: <span id="profile-id">1</span>)</p>
+ <h1>ʕ•ᴥ•? Bank Central Asia International Persero Tbk. Internal form Resignation and Leave</h1>
+        <p class="mono text-xs">Logged in: <b>Neval</b> (ID: 1)</p>
         
         <nav id="main-nav">
             <button id="nav-leave" class="active" onclick="showTab('leave')">Apply Leave</button>
@@ -75,7 +104,7 @@
                 <div class="date-item"><label class="mono uppercase">Return Date</label><input type="date" id="leave-return"></div>
             </div>
             <textarea id="leave-reason" placeholder="Reason for leave..."></textarea>
-            <button class="action" onclick="submitLeave()">Submit Leave Request</button>
+            <button class="action" onclick="submitLeave()">Submit Leave</button>
         </div>
 
         <div id="tab-resign" class="form-group hidden">
@@ -93,10 +122,14 @@
         </div>
 
         <div id="tab-admin" class="hidden">
-            <h3># Admin Panel</h3>
+            <h3># HR Admin Panel</h3>
             <div id="admin-global-list"></div>
         </div>
     </main>
+
+    <footer>
+        <p>Built for POROS 2026 by Neval. <br> Built to last forever*.</p>
+    </footer>
 
     <script>
         const api = '/api';
@@ -109,6 +142,13 @@
             });
             if(tab === 'history') loadHistory();
             if(tab === 'admin') loadAdmin();
+        }
+
+        function getStatusBadge(status) {
+            let cls = 'status-pending';
+            if(status === 'approved') cls = 'status-approved';
+            if(status === 'rejected') cls = 'status-rejected';
+            return `<div class="status-badge ${cls}"><div class="dot"></div>${status}</div>`;
         }
 
         async function submitLeave() {
@@ -140,57 +180,62 @@
 
         async function loadHistory() {
             const list = document.getElementById('personal-history-list');
-            list.innerHTML = '<p class="mono italic">Syncing...</p>';
-
             try {
-                const resL = await fetch(`${api}/leaves`);
-                const resR = await fetch(`${api}/resignations`);
-                
+                const [resL, resR] = await Promise.all([
+                    fetch(`${api}/leaves`),
+                    fetch(`${api}/resignations`)
+                ]);
                 const leaves = resL.ok ? await resL.json() : [];
                 const resigns = resR.ok ? await resR.json() : [];
                 
                 let html = '';
-
                 if (Array.isArray(leaves)) {
                     leaves.filter(l => l.user_id == user.id).forEach(l => {
-                        const sD = l.start_date ? l.start_date.split('T')[0] : '-';
-                        const eD = l.end_date ? l.end_date.split('T')[0] : '-';
-                        html += `<div class="item"><span class="mono">LEAVE [${l.status.toUpperCase()}]</span><p>${l.reason}</p><p class="mono" style="font-size:0.7em">FROM ${sD} TO ${eD}</p></div>`;
+                        html += `
+                        <div class="item">
+                            <div><span class="mono">TYPE: LEAVE</span><p>${l.reason}</p></div>
+                            ${getStatusBadge(l.status)}
+                        </div>`;
                     });
                 }
-
                 if (Array.isArray(resigns)) {
                     resigns.filter(r => r.user_id == user.id).forEach(r => {
-                        html += `<div class="item"><span class="mono" style="color: #ff8282;">RESIGN [${r.status.toUpperCase()}]</span><p>${r.reason}</p></div>`;
+                        html += `
+                        <div class="item">
+                            <div><span class="mono">TYPE: RESIGN</span><p>${r.reason}</p></div>
+                            ${getStatusBadge(r.status)}
+                        </div>`;
                     });
                 }
-
                 list.innerHTML = html || '<p class="mono italic">No history found.</p>';
-            } catch (e) {
-                list.innerHTML = '<p class="mono text-red-400 italic">Error connecting to server.</p>';
-            }
+            } catch (e) { list.innerHTML = 'Error loading history.'; }
         }
 
         async function loadAdmin() {
             const list = document.getElementById('admin-global-list');
             try {
-                const resL = await fetch(`${api}/leaves`);
-                const resR = await fetch(`${api}/resignations`);
+                const [resL, resR] = await Promise.all([
+                    fetch(`${api}/leaves`),
+                    fetch(`${api}/resignations`)
+                ]);
                 const leaves = resL.ok ? await resL.json() : [];
                 const resigns = resR.ok ? await resR.json() : [];
                 
                 let html = '';
                 [...leaves, ...resigns.map(r => ({...r, isResign: true}))].forEach(i => {
-                    const type = i.isResign ? 'RESIGN' : 'LEAVE';
-                    const color = i.isResign ? '#ff8282' : 'var(--link)';
-                    html += `<div class="item"><b>ID: ${i.user_id}</b> — <span style="color:${color}">${type} [${i.status}]</span><p>${i.reason}</p>`;
-                    if(i.status === 'pending') {
-                        const func = i.isResign ? 'approveResign' : 'approveLeave';
-                        html += `<button onclick="${func}(${i.ID})" style="color:#fff; text-decoration:underline; background:none; border:none; cursor:pointer; font-size:0.8em;">[APPROVE]</button>`;
-                    }
-                    html += `</div>`;
+                    html += `
+                    <div class="item">
+                        <div>
+                            <b>ID: ${i.user_id}</b> — <span class="mono">${i.isResign ? 'RESIGN' : 'LEAVE'}</span>
+                            <p>${i.reason}</p>
+                            ${i.status === 'pending' ? `
+                            <button onclick="${i.isResign ? 'approveResign' : 'approveLeave'}(${i.ID})" style="color:var(--link); text-decoration:underline; background:none; border:none; cursor:pointer; font-size:0.8em; padding:0;">[APPROVE]</button>
+                            ` : ''}
+                        </div>
+                        ${getStatusBadge(i.status)}
+                    </div>`;
                 });
-                list.innerHTML = html || '<p class="mono italic">All clear.</p>';
+                list.innerHTML = html || '<p class="mono">All clear.</p>';
             } catch (e) { list.innerHTML = 'Error.'; }
         }
 
@@ -200,4 +245,3 @@
     </script>
 </body>
 </html>
-
