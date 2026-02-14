@@ -39,3 +39,13 @@ func (h *ResignationHandler) Approve(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{"message": "Resign disetujui"})
 }
+
+func (h *ResignationHandler) GetHistory(c *fiber.Ctx) error {
+	ctx := c.UserContext()
+	resigns, err := h.usecase.GetHistory(ctx)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+	// PASTIKAN BARIS INI ADA!
+	return c.JSON(resigns)
+}
