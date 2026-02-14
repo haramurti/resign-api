@@ -51,7 +51,9 @@ func main() {
 	api.Patch("/leaves/:id/approve", leaveHdl.Approve)
 
 	// Route Resign
+
 	api.Post("/resignations", resignHdl.Submit)
+	api.Get("/resignations", resignHdl.GetHistory)
 	api.Patch("/resignations/:id/approve", resignHdl.Approve)
 
 	// Health Check
