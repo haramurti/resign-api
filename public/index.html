@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Internal — POROS Corp</title>
+    <title>Internal — BCA System</title>
     <style>
-        /* Bear Blog Dark Mode Palette */
         :root {
-            --bg: #0b212a;     /* Deep Navy */
-            --text: #e0e0e0;   /* Bear Off-white */
-            --link: #82aaff;   /* Soft Blue */
-            --border: #2a3f47; /* Subtle Divider */
+            --bg: #0b212a;
+            --text: #e0e0e0;
+            --link: #82aaff;
+            --border: #2a3f47;
             --accent: #fff;
         }
 
@@ -26,56 +25,34 @@
 
         h1, h2, h3 { color: var(--accent); margin-bottom: 5px; }
         .mono { font-family: monospace; font-size: 0.85em; color: #888; }
-        .hidden { display: none; }
+        .hidden { display: none !important; }
         
-        /* Navigation Style khas Bear Blog */
         nav { margin-bottom: 40px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
         nav button { background: none; border: none; color: var(--link); cursor: pointer; text-decoration: underline; font-size: 0.9em; margin-right: 15px; }
         nav button.active { color: #fff; font-weight: bold; text-decoration: none; }
 
-        /* Form Elements */
-        .form-group { margin-top: 30px; }
-        .date-row { display: flex; gap: 15px; margin-bottom: 15px; }
-        .date-item { flex: 1; }
-        label { display: block; font-size: 0.75em; margin-bottom: 5px; color: #888; }
-
         input, textarea {
             background: #152d35; border: 1px solid var(--border); color: #fff;
-            padding: 10px; width: 100%; box-sizing: border-box; outline: none;
-            border-radius: 0px; 
+            padding: 10px; width: 100%; box-sizing: border-box; outline: none; border-radius: 0px; 
         }
-        textarea { margin-top: 10px; min-height: 80px; }
 
         button.action {
             background: var(--link); border: none; padding: 10px 20px;
             color: var(--bg); font-weight: bold; cursor: pointer; margin-top: 10px;
         }
 
-        /* Status Badge Styling */
         .item { 
             border-top: 1px dashed var(--border); 
-            padding: 20px 0; 
-            margin-top: 20px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: flex-start; 
+            padding: 20px 0; margin-top: 20px; 
+            display: flex; justify-content: space-between; align-items: flex-start; 
         }
 
         .status-badge {
-            padding: 4px 10px;
-            font-size: 0.65em;
-            font-weight: bold;
-            text-transform: uppercase;
-            border-radius: 4px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            border: 1px solid transparent;
-            white-space: nowrap;
+            padding: 4px 10px; font-size: 0.65em; font-weight: bold; text-transform: uppercase;
+            border-radius: 4px; display: inline-flex; align-items: center; gap: 6px; border: 1px solid transparent;
         }
         .status-pending { background: #1a3a4a; color: #82aaff; border-color: #82aaff; }
         .status-approved { background: #163a2a; color: #4ade80; border-color: #4ade80; }
-        .status-rejected { background: #3a1616; color: #f87171; border-color: #f87171; }
         .dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
 
         footer { margin-top: 100px; font-size: 0.8em; color: #566970; border-top: 1px solid var(--border); padding-top: 20px; }
@@ -84,40 +61,38 @@
 <body>
 
     <header>
- <h1>ʕ•ᴥ•? Bank Central Asia International Persero Tbk. Internal form Resignation and Leave</h1>
-        <p class="mono text-xs">Logged in: <b>Neval</b> (ID: 1)</p>
+        <h1>ʕ•ᴥ•? BCA Internal Form</h1>
+        <p class="mono text-xs">Logged in as: <b id="user-display">Guest</b> (<span id="role-display">None</span>)</p>
         
         <nav id="main-nav">
             <button id="nav-leave" class="active" onclick="showTab('leave')">Apply Leave</button>
             <button id="nav-resign" onclick="showTab('resign')">Resignation</button>
             <button id="nav-history" onclick="showTab('history')">My History</button>
-            <button id="nav-admin" onclick="showTab('admin')">Admin Panel</button>
+            <button id="nav-admin" class="hidden" onclick="showTab('admin')">Admin Panel</button>
         </nav>
     </header>
 
     <main>
         <div id="tab-leave" class="form-group">
             <h3># Request Leave</h3>
-            <p class="mono italic">Specify your leave dates.</p>
-            <div class="date-row">
-                <div class="date-item"><label class="mono uppercase">Start Date</label><input type="date" id="leave-start"></div>
-                <div class="date-item"><label class="mono uppercase">Return Date</label><input type="date" id="leave-return"></div>
-            </div>
-            <textarea id="leave-reason" placeholder="Reason for leave..."></textarea>
+            <label class="mono">START DATE</label>
+            <input type="date" id="leave-start">
+            <label class="mono" style="display:block; margin-top:10px">RETURN DATE</label>
+            <input type="date" id="leave-return">
+            <textarea id="leave-reason" placeholder="Reason for leave..." style="margin-top:10px"></textarea>
             <button class="action" onclick="submitLeave()">Submit Leave</button>
         </div>
 
         <div id="tab-resign" class="form-group hidden">
             <h3># Resignation Notice</h3>
-            <p class="mono italic">Your last working day.</p>
-            <label class="mono uppercase">Last Working Day</label>
+            <label class="mono">LAST WORKING DAY</label>
             <input type="date" id="resign-date">
-            <textarea id="resign-reason" placeholder="Reason for leaving..."></textarea>
+            <textarea id="resign-reason" placeholder="Reason for leaving..." style="margin-top:10px"></textarea>
             <button class="action" onclick="submitResign()">Submit Resignation</button>
         </div>
 
         <div id="tab-history" class="hidden">
-            <h3># Your Submissions</h3>
+            <h3># Your History</h3>
             <div id="personal-history-list"></div>
         </div>
 
@@ -133,22 +108,62 @@
 
     <script>
         const api = '/api';
-        const user = { id: 1, name: "Neval" };
+        let authHeader = "";
+        let currentUser = null;
+
+        // Login & Role Check
+        async function doLogin() {
+            const email = prompt("Enter Company Email:");
+            const pass = prompt("Enter Password:");
+            if(!email || !pass) return doLogin();
+            
+            authHeader = "Basic " + btoa(email + ":" + pass);
+
+            try {
+                // Fetch profile to verify credentials and role
+                const res = await fetch(`${api}/me`, {
+                    headers: { "Authorization": authHeader }
+                });
+
+                if (res.ok) {
+                    currentUser = await res.json();
+                    document.getElementById('user-display').innerText = currentUser.name;
+                    document.getElementById('role-display').innerText = currentUser.role;
+
+                    // Show Admin Panel if role is hr or manager
+                    if (currentUser.role === 'hr' || currentUser.role === 'manager') {
+                        document.getElementById('nav-admin').classList.remove('hidden');
+                    }
+                    loadHistory();
+                } else {
+                    alert("Invalid Credentials!");
+                    doLogin();
+                }
+            } catch (err) {
+                console.error("Login Error:", err);
+                alert("Connection Error.");
+            }
+        }
 
         function showTab(tab) {
             ['leave', 'resign', 'history', 'admin'].forEach(t => {
-                document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tab);
-                document.getElementById(`nav-${t}`).classList.toggle('active', t === tab);
+                const el = document.getElementById(`tab-${t}`);
+                const nav = document.getElementById(`nav-${t}`);
+                if (el) el.classList.toggle('hidden', t !== tab);
+                if (nav) nav.classList.toggle('active', t === tab);
             });
             if(tab === 'history') loadHistory();
             if(tab === 'admin') loadAdmin();
         }
 
-        function getStatusBadge(status) {
-            let cls = 'status-pending';
-            if(status === 'approved') cls = 'status-approved';
-            if(status === 'rejected') cls = 'status-rejected';
-            return `<div class="status-badge ${cls}"><div class="dot"></div>${status}</div>`;
+        async function fetchWithAuth(url, options = {}) {
+            options.headers = { ...options.headers, "Authorization": authHeader };
+            const res = await fetch(url, options);
+            if(res.status === 401 || res.status === 403) {
+                alert("Access Denied: Check your role or credentials.");
+                return null;
+            }
+            return res;
         }
 
         async function submitLeave() {
@@ -157,10 +172,10 @@
             const resn = document.getElementById('leave-reason').value;
             if(!start || !end || !resn) return alert("Fill all fields.");
 
-            await fetch(`${api}/leaves`, {
+            await fetchWithAuth(`${api}/leaves`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_id: user.id, start_date: start, end_date: end, reason: resn })
+                body: JSON.stringify({ user_id: currentUser.ID, start_date: start, end_date: end, reason: resn })
             });
             showTab('history');
         }
@@ -170,78 +185,64 @@
             const resn = document.getElementById('resign-reason').value;
             if(!date || !resn) return alert("Fill all fields.");
 
-            await fetch(`${api}/resignations`, {
+            await fetchWithAuth(`${api}/resignations`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_id: user.id, reason: `[Exit: ${date}] ${resn}` })
+                body: JSON.stringify({ user_id: currentUser.ID, reason: `[Exit: ${date}] ${resn}` })
             });
             showTab('history');
         }
 
         async function loadHistory() {
             const list = document.getElementById('personal-history-list');
-            try {
-                const [resL, resR] = await Promise.all([
-                    fetch(`${api}/leaves`),
-                    fetch(`${api}/resignations`)
-                ]);
-                const leaves = resL.ok ? await resL.json() : [];
-                const resigns = resR.ok ? await resR.json() : [];
-                
-                let html = '';
-                if (Array.isArray(leaves)) {
-                    leaves.filter(l => l.user_id == user.id).forEach(l => {
-                        html += `
-                        <div class="item">
-                            <div><span class="mono">TYPE: LEAVE</span><p>${l.reason}</p></div>
-                            ${getStatusBadge(l.status)}
-                        </div>`;
-                    });
-                }
-                if (Array.isArray(resigns)) {
-                    resigns.filter(r => r.user_id == user.id).forEach(r => {
-                        html += `
-                        <div class="item">
-                            <div><span class="mono">TYPE: RESIGN</span><p>${r.reason}</p></div>
-                            ${getStatusBadge(r.status)}
-                        </div>`;
-                    });
-                }
-                list.innerHTML = html || '<p class="mono italic">No history found.</p>';
-            } catch (e) { list.innerHTML = 'Error loading history.'; }
+            const [resL, resR] = await Promise.all([
+                fetchWithAuth(`${api}/leaves`),
+                fetchWithAuth(`${api}/resignations`)
+            ]);
+            if(!resL || !resR) return;
+            
+            const leaves = await resL.json();
+            const resigns = await resR.json();
+            
+            let html = '';
+            leaves.filter(l => l.user_id === currentUser.ID).forEach(l => {
+                html += `<div class="item"><div><span class="mono">LEAVE</span><p>${l.reason}</p></div><div class="status-badge status-${l.status}">${l.status}</div></div>`;
+            });
+            resigns.filter(r => r.user_id === currentUser.ID).forEach(r => {
+                html += `<div class="item"><div><span class="mono">RESIGN</span><p>${r.reason}</p></div><div class="status-badge status-${r.status}">${r.status}</div></div>`;
+            });
+            list.innerHTML = html || '<p class="mono italic">No history found.</p>';
         }
 
         async function loadAdmin() {
             const list = document.getElementById('admin-global-list');
-            try {
-                const [resL, resR] = await Promise.all([
-                    fetch(`${api}/leaves`),
-                    fetch(`${api}/resignations`)
-                ]);
-                const leaves = resL.ok ? await resL.json() : [];
-                const resigns = resR.ok ? await resR.json() : [];
-                
-                let html = '';
-                [...leaves, ...resigns.map(r => ({...r, isResign: true}))].forEach(i => {
-                    html += `
-                    <div class="item">
-                        <div>
-                            <b>ID: ${i.user_id}</b> — <span class="mono">${i.isResign ? 'RESIGN' : 'LEAVE'}</span>
-                            <p>${i.reason}</p>
-                            ${i.status === 'pending' ? `
-                            <button onclick="${i.isResign ? 'approveResign' : 'approveLeave'}(${i.ID})" style="color:var(--link); text-decoration:underline; background:none; border:none; cursor:pointer; font-size:0.8em; padding:0;">[APPROVE]</button>
-                            ` : ''}
-                        </div>
-                        ${getStatusBadge(i.status)}
-                    </div>`;
-                });
-                list.innerHTML = html || '<p class="mono">All clear.</p>';
-            } catch (e) { list.innerHTML = 'Error.'; }
+            const [resL, resR] = await Promise.all([
+                fetchWithAuth(`${api}/leaves`),
+                fetchWithAuth(`${api}/resignations`)
+            ]);
+            if(!resL || !resR) return;
+
+            const leaves = await resL.json();
+            const resigns = await resR.json();
+            
+            let html = '';
+            [...leaves, ...resigns.map(r => ({...r, isR: true}))].forEach(i => {
+                html += `<div class="item"><div><b>EMP ID: ${i.user_id}</b> — ${i.isR ? 'RESIGN' : 'LEAVE'}<p>${i.reason}</p>`;
+                if(i.status === 'pending') {
+                    const type = i.isR ? 'resignations' : 'leaves';
+                    html += `<button onclick="approve('${type}', ${i.ID})" style="color:var(--link); text-decoration:underline; background:none; border:none; cursor:pointer; padding:0;">[APPROVE]</button>`;
+                }
+                html += `</div><div class="status-badge status-${i.status}">${i.status}</div></div>`;
+            });
+            list.innerHTML = html || 'No pending tasks.';
         }
 
-        async function approveLeave(id) { await fetch(`${api}/leaves/${id}/approve`, { method: 'PATCH' }); loadAdmin(); }
-        async function approveResign(id) { await fetch(`${api}/resignations/${id}/approve`, { method: 'PATCH' }); loadAdmin(); }
-        window.onload = loadHistory;
+        async function approve(type, id) {
+            await fetchWithAuth(`${api}/admin/${type}/${id}/approve`, { method: 'PATCH' });
+            loadAdmin();
+        }
+
+        window.onload = doLogin;
     </script>
 </body>
 </html>
