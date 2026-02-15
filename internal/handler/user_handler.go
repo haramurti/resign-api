@@ -37,11 +37,21 @@ func (h *UserHandler) Register(c *fiber.Ctx) error {
 }
 
 // GetProfile: Handler buat ambil data profil
+// GetProfile: Handler buat ambil data profil
 func (h *UserHandler) GetProfile(c *fiber.Ctx) error {
-	// Ambil ID dari parameter URL /users/:id
-	idParam := c.Params("id")
-	id, _ := strconv.Atoi(idParam)
+	// 1. Coba ambil dari Locals dulu (Hasil dari middleware NewAuthMiddleware)
+	userLocal := c.Locals("currentUser")
+	if userLocal != nil {
+		return c.JSON(userLocal)
+	}
 
+	// 2. Kalau Locals kosong (misal dipanggil manual via ID), baru ambil dari params
+	idParam := c.Params("id")
+	if idParam == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "ID tidak ditemukan di URL atau Login"})
+	}
+
+	id, _ := strconv.Atoi(idParam)
 	ctx := c.UserContext()
 	user, err := h.usecase.GetProfile(ctx, uint(id))
 	if err != nil {
