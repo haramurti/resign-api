@@ -15,18 +15,19 @@ import (
 func main() {
 	_ = godotenv.Load()
 
-	// 1. Koneksi Database (Sekaligus AutoMigrate di dalamnya)
+	// 1. Koneksi Database (AutoMigrate jalan di sini)
 	db := database.NewPostgresDB()
 
 	// 2. Wiring Up (Menyambungkan Kabel)
+
 	// --- USER ---
 	userRepo := repository.NewUserRepository(db)
 	userUC := usecase.NewUserUsecase(userRepo)
-	userHdl := handler.NewUserHandler(userUC)
+	userHdl := handler.NewUserHandler(userUC) // Sekarang bakal kita pake!
 
 	// --- LEAVE ---
 	leaveRepo := repository.NewLeaveRepository(db)
-	leaveUC := usecase.NewLeaveUsecase(leaveRepo, userRepo) // Butuh userRepo buat cek kuota
+	leaveUC := usecase.NewLeaveUsecase(leaveRepo, userRepo)
 	leaveHdl := handler.NewLeaveHandler(leaveUC)
 
 	// --- RESIGN ---
@@ -36,34 +37,41 @@ func main() {
 
 	app := fiber.New()
 
+	// Serve Static Files (Frontend lo di sini)
 	app.Static("/", "./public")
 
-	// 3. Routing
-	api := app.Group("/api") // Grouping biar rapi /api/...
+	// 3. Middlewares
+	authMid := handler.NewAuthMiddleware(userRepo) // Cek login email & pass
+	adminMid := handler.AdminOnly()                // Cek role manager/hr
 
-	// Route User
-	api.Post("/users", userHdl.Register)
-	api.Get("/users/:id", userHdl.GetProfile)
+	// 4. Routing
 
-	// Route Leave
+	// Group API: Semua rute di bawah ini wajib login pake email & password
+	api := app.Group("/api", authMid)
+
+	// --- USER ROUTES ---
+	api.Get("/profile/:id", userHdl.GetProfile) // userHdl dipake di sini!
+
+	// --- EMPLOYEE ROUTES (Self Service) ---
 	api.Post("/leaves", leaveHdl.Apply)
 	api.Get("/leaves", leaveHdl.GetHistory)
-	api.Patch("/leaves/:id/approve", leaveHdl.Approve)
-
-	// Route Resign
-
 	api.Post("/resignations", resignHdl.Submit)
 	api.Get("/resignations", resignHdl.GetHistory)
-	api.Patch("/resignations/:id/approve", resignHdl.Approve)
 
-	// Health Check
+	// --- ADMIN ROUTES (MANAGER/HR ONLY) ---
+	// Dibungkus lagi pake adminMid biar cuma bos yang bisa masuk
+	admin := api.Group("/admin", adminMid)
+	admin.Patch("/leaves/:id/approve", leaveHdl.Approve)
+	admin.Patch("/resignations/:id/approve", resignHdl.Approve)
+
+	// Health Check buat mastiin backend idup
 	app.Get("/ping", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{"status": "OK", "message": "Backend is ready to rock!"})
+		return c.JSON(fiber.Map{"status": "OK", "message": "BCA Backend is Ready to Rock!"})
 	})
 
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8686" // Default port kalau di .env gak ada
+		port = "8686"
 	}
 
 	log.Printf("🚀 Server is starting on port %s...", port)
