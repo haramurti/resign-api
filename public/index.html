@@ -6,7 +6,7 @@
     <title>Internal — BCA System</title>
     <style>
         :root {
-            --bg: #0b212a;
+            --bg: #0b212a;     /* Bear Dark Mode Palette */
             --text: #e0e0e0;
             --link: #82aaff;
             --border: #2a3f47;
@@ -19,7 +19,7 @@
             color: var(--text);
             line-height: 1.6;
             max-width: 650px;
-            margin: 60px auto;
+            margin: 40px auto;
             padding: 0 20px;
         }
 
@@ -34,6 +34,7 @@
         input, textarea {
             background: #152d35; border: 1px solid var(--border); color: #fff;
             padding: 10px; width: 100%; box-sizing: border-box; outline: none; border-radius: 0px; 
+            margin-bottom: 10px;
         }
 
         button.action {
@@ -77,9 +78,9 @@
             <h3># Request Leave</h3>
             <label class="mono">START DATE</label>
             <input type="date" id="leave-start">
-            <label class="mono" style="display:block; margin-top:10px">RETURN DATE</label>
+            <label class="mono">RETURN DATE</label>
             <input type="date" id="leave-return">
-            <textarea id="leave-reason" placeholder="Reason for leave..." style="margin-top:10px"></textarea>
+            <textarea id="leave-reason" placeholder="Reason for leave..."></textarea>
             <button class="action" onclick="submitLeave()">Submit Leave</button>
         </div>
 
@@ -87,7 +88,7 @@
             <h3># Resignation Notice</h3>
             <label class="mono">LAST WORKING DAY</label>
             <input type="date" id="resign-date">
-            <textarea id="resign-reason" placeholder="Reason for leaving..." style="margin-top:10px"></textarea>
+            <textarea id="resign-reason" placeholder="Reason for leaving..."></textarea>
             <button class="action" onclick="submitResign()">Submit Resignation</button>
         </div>
 
@@ -103,7 +104,7 @@
     </main>
 
     <footer>
-        <p>Built for POROS 2026 by Neval. <br> Built to last forever*.</p>
+        <p>Built for POROS 2026 by Neval. <br> Powered by MacBook Air M4.</p>
     </footer>
 
     <script>
@@ -111,7 +112,7 @@
         let authHeader = "";
         let currentUser = null;
 
-        // Login & Role Check
+        // Gerbang utama login
         async function doLogin() {
             const email = prompt("Enter Company Email:");
             const pass = prompt("Enter Password:");
@@ -120,28 +121,36 @@
             authHeader = "Basic " + btoa(email + ":" + pass);
 
             try {
-                // Fetch profile to verify credentials and role
                 const res = await fetch(`${api}/me`, {
                     headers: { "Authorization": authHeader }
                 });
 
                 if (res.ok) {
                     currentUser = await res.json();
+                    
+                    // Validasi: Pastikan ID bukan 0
+                    if (!currentUser.ID || currentUser.ID === 0) {
+                        alert("Database Error: User ID is 0. Check your SQL seed!");
+                        return;
+                    }
+
                     document.getElementById('user-display').innerText = currentUser.name;
                     document.getElementById('role-display').innerText = currentUser.role;
 
-                    // Show Admin Panel if role is hr or manager
+                    // Tampilkan tab admin hanya untuk HR/Manager
                     if (currentUser.role === 'hr' || currentUser.role === 'manager') {
                         document.getElementById('nav-admin').classList.remove('hidden');
                     }
+                    
+                    // Load data awal setelah login sukses
                     loadHistory();
                 } else {
-                    alert("Invalid Credentials!");
-                    doLogin();
+                    alert("Gmail atau Password salah!");
+                    return doLogin();
                 }
             } catch (err) {
                 console.error("Login Error:", err);
-                alert("Connection Error.");
+                alert("Connection Error. Backend mati?");
             }
         }
 
@@ -160,51 +169,58 @@
             options.headers = { ...options.headers, "Authorization": authHeader };
             const res = await fetch(url, options);
             if(res.status === 401 || res.status === 403) {
-                alert("Access Denied: Check your role or credentials.");
+                alert("Access Denied!");
                 return null;
             }
             return res;
         }
 
         async function submitLeave() {
+            if (!currentUser) return;
             const start = document.getElementById('leave-start').value;
             const end = document.getElementById('leave-return').value;
             const resn = document.getElementById('leave-reason').value;
             if(!start || !end || !resn) return alert("Fill all fields.");
 
-            await fetchWithAuth(`${api}/leaves`, {
+            const res = await fetchWithAuth(`${api}/leaves`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ user_id: currentUser.ID, start_date: start, end_date: end, reason: resn })
             });
-            showTab('history');
+            if(res) showTab('history');
         }
 
         async function submitResign() {
+            if (!currentUser) return;
             const date = document.getElementById('resign-date').value;
             const resn = document.getElementById('resign-reason').value;
             if(!date || !resn) return alert("Fill all fields.");
 
-            await fetchWithAuth(`${api}/resignations`, {
+            const res = await fetchWithAuth(`${api}/resignations`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ user_id: currentUser.ID, reason: `[Exit: ${date}] ${resn}` })
             });
-            showTab('history');
+            if(res) showTab('history');
         }
 
         async function loadHistory() {
+            // Proteksi: Jangan tembak API kalau ID belum ada (ID=0)
+            if (!currentUser || !currentUser.ID) return;
+
             const list = document.getElementById('personal-history-list');
             const [resL, resR] = await Promise.all([
                 fetchWithAuth(`${api}/leaves`),
                 fetchWithAuth(`${api}/resignations`)
             ]);
+            
             if(!resL || !resR) return;
             
             const leaves = await resL.json();
             const resigns = await resR.json();
             
             let html = '';
+            // Filter hanya milik user yang sedang login
             leaves.filter(l => l.user_id === currentUser.ID).forEach(l => {
                 html += `<div class="item"><div><span class="mono">LEAVE</span><p>${l.reason}</p></div><div class="status-badge status-${l.status}">${l.status}</div></div>`;
             });
@@ -238,10 +254,12 @@
         }
 
         async function approve(type, id) {
+            // Pastikan rute admin sesuai dengan wiring di main.go
             await fetchWithAuth(`${api}/admin/${type}/${id}/approve`, { method: 'PATCH' });
             loadAdmin();
         }
 
+        // Jalankan login saat window dimuat
         window.onload = doLogin;
     </script>
 </body>
