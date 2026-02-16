@@ -17,17 +17,17 @@ func main() {
 
 	db := database.NewPostgresDB()
 
-	// Wiring Repository
+	//repositories
 	userRepo := repository.NewUserRepository(db)
 	leaveRepo := repository.NewLeaveRepository(db)
 	resignRepo := repository.NewResignationRepository(db)
 
-	// Wiring Usecase
+	//usecases
 	userUC := usecase.NewUserUsecase(userRepo)
 	leaveUC := usecase.NewLeaveUsecase(leaveRepo, userRepo)
 	resignUC := usecase.NewResignationUsecase(resignRepo)
 
-	// Wiring Handler
+	//hanlders
 	userHdl := handler.NewUserHandler(userUC)
 	leaveHdl := handler.NewLeaveHandler(leaveUC)
 	resignHdl := handler.NewResignationHandler(resignUC)
@@ -35,14 +35,13 @@ func main() {
 	app := fiber.New()
 	app.Static("/", "./public")
 
-	// Middleware Initialization
+	//middlewares
 	authMid := handler.NewAuthMiddleware(userRepo)
 	adminMid := handler.AdminOnly()
 
-	// ---------------------------------------------------------
-	// ROUTING
-	// ---------------------------------------------------------
-	api := app.Group("/api", authMid) // Semua butuh login
+	// routes
+	//need login all
+	api := app.Group("/api", authMid)
 
 	// User Routes
 	api.Get("/me", userHdl.GetProfile) // Biar userHdl kepake
@@ -53,7 +52,7 @@ func main() {
 	api.Post("/resignations", resignHdl.Submit)
 	api.Get("/resignations", resignHdl.GetHistory)
 
-	// Admin Routes (Manager/HR Only)
+	//admin routes 'hr' roles only
 	admin := api.Group("/admin", adminMid)
 	admin.Patch("/leaves/:id/approve", leaveHdl.Approve)
 	admin.Patch("/resignations/:id/approve", resignHdl.Approve)

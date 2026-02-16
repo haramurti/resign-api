@@ -16,7 +16,7 @@ func NewLeaveHandler(u domain.LeaveUsecase) *LeaveHandler {
 	return &LeaveHandler{usecase: u}
 }
 
-// Apply: User mengajukan cuti
+// apply leave
 func (h *LeaveHandler) Apply(c *fiber.Ctx) error {
 	// Kita pake struct temporary biar gampang parsing tanggal dari string JSON
 	var input struct {
@@ -30,7 +30,7 @@ func (h *LeaveHandler) Apply(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "Format input salah"})
 	}
 
-	// Konversi string tanggal ke format time.Time Go
+	//conversion
 	start, _ := time.Parse("2006-01-02", input.StartDate)
 	end, _ := time.Parse("2006-01-02", input.EndDate)
 
@@ -53,7 +53,6 @@ func (h *LeaveHandler) Apply(c *fiber.Ctx) error {
 	})
 }
 
-// GetHistory: Ambil semua daftar cuti (buat HR)
 func (h *LeaveHandler) GetHistory(c *fiber.Ctx) error {
 	ctx := c.UserContext()
 	history, err := h.usecase.GetHistory(ctx)
@@ -63,7 +62,6 @@ func (h *LeaveHandler) GetHistory(c *fiber.Ctx) error {
 	return c.JSON(history)
 }
 
-// Approve: HR menyetujui cuti
 func (h *LeaveHandler) Approve(c *fiber.Ctx) error {
 	id, _ := strconv.Atoi(c.Params("id"))
 

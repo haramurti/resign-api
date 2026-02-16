@@ -10,11 +10,11 @@ import (
 type LeaveRequest struct {
 	gorm.Model
 	UserID    uint      `gorm:"not null" json:"user_id"`
-	User      User      `gorm:"foreignKey:UserID" json:"-"` // Relation ke User
+	User      User      `gorm:"foreignKey:UserID" json:"-"`
 	Reason    string    `gorm:"type:text;not null" json:"reason"`
 	StartDate time.Time `gorm:"not null" json:"start_date"`
 	EndDate   time.Time `gorm:"not null" json:"end_date"`
-	Status    string    `gorm:"type:varchar(20);default:'pending'" json:"status"` // pending, approved, rejected
+	Status    string    `gorm:"type:varchar(20);default:'pending'" json:"status"`
 }
 
 type LeaveRepository interface {
@@ -25,7 +25,7 @@ type LeaveRepository interface {
 }
 
 type LeaveUsecase interface {
-	Apply(ctx context.Context, leave *LeaveRequest) error // Isinya validasi jatah cuti, dll
+	Apply(ctx context.Context, leave *LeaveRequest) error
 	GetHistory(ctx context.Context) ([]LeaveRequest, error)
 	ApproveLeave(ctx context.Context, id uint) error
 	RejectLeave(ctx context.Context, id uint) error
