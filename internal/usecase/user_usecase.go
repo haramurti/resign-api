@@ -15,13 +15,11 @@ func NewUserUsecase(ur domain.UserRepository) domain.UserUsecase {
 }
 
 func (u *userUsecase) Register(ctx context.Context, user *domain.User) error {
-	// 1. Cek apakah email sudah terdaftar
 	existingUser, _ := u.userRepo.GetByEmail(ctx, user.Email)
 	if existingUser.ID != 0 {
 		return errors.New("email sudah digunakan, pakai email lain bos")
 	}
 
-	// 2. Set default quota kalau belum diisi
 	if user.LeaveQuota == 0 {
 		user.LeaveQuota = 12
 	}

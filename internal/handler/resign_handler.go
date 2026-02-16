@@ -46,6 +46,5 @@ func (h *ResignationHandler) GetHistory(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}
-	// PASTIKAN BARIS INI ADA!
 	return c.JSON(resigns)
 }
