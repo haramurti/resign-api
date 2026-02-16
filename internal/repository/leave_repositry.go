@@ -16,13 +16,12 @@ func NewLeaveRepository(db *gorm.DB) domain.LeaveRepository {
 }
 
 func (r *leaveRepository) Create(ctx context.Context, leave *domain.LeaveRequest) error {
-	// GORM bakal otomatis ngisi UserID ke tabel leave_requests
+	// GORM will automatic fill the id
 	return r.db.WithContext(ctx).Create(leave).Error
 }
 
 func (r *leaveRepository) FetchAll(ctx context.Context) ([]domain.LeaveRequest, error) {
 	var leaves []domain.LeaveRequest
-	// .Preload("User") itu kayak "JOIN" di SQL, biar data usernya ikut ketarik
 	err := r.db.WithContext(ctx).Preload("User").Find(&leaves).Error
 	return leaves, err
 }
@@ -34,6 +33,6 @@ func (r *leaveRepository) GetByID(ctx context.Context, id uint) (domain.LeaveReq
 }
 
 func (r *leaveRepository) UpdateStatus(ctx context.Context, id uint, status string) error {
-	// Update spesifik kolom status aja (buat HR approval)
+	// update spesific status
 	return r.db.WithContext(ctx).Model(&domain.LeaveRequest{}).Where("id = ?", id).Update("status", status).Error
 }

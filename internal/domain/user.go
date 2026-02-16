@@ -10,12 +10,11 @@ type User struct {
 	gorm.Model
 	Name       string `gorm:"type:varchar(100);not null" json:"name"`
 	Email      string `gorm:"type:varchar(100);uniqueIndex;not null" json:"email"`
-	Password   string `gorm:"type:varchar(255);not null" json:"-"` // Tambahin ini!
+	Password   string `gorm:"type:varchar(255);not null" json:"-"`
 	Role       string `gorm:"type:varchar(20);default:'employee'" json:"role"`
 	LeaveQuota int    `gorm:"default:12" json:"leave_quota"`
 }
 
-// UserRepository: Kontrak buat CRUD User di database
 type UserRepository interface {
 	Create(ctx context.Context, user *User) error
 	GetByID(ctx context.Context, id uint) (User, error)
@@ -24,7 +23,6 @@ type UserRepository interface {
 	Delete(ctx context.Context, id uint) error
 }
 
-// UserUsecase: Kontrak buat logic User
 type UserUsecase interface {
 	Register(ctx context.Context, user *User) error
 	GetProfile(ctx context.Context, id uint) (User, error)
