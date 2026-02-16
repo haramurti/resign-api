@@ -2,7 +2,6 @@ package handler
 
 import (
 	"resign-api/internal/domain"
-	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -15,48 +14,16 @@ func NewUserHandler(u domain.UserUsecase) *UserHandler {
 	return &UserHandler{usecase: u}
 }
 
-// Register: Handler buat daftar karyawan baru
-func (h *UserHandler) Register(c *fiber.Ctx) error {
-	var user domain.User
-
-	// 1. Parsing JSON body ke struct User
-	if err := c.BodyParser(&user); err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "Format data salah"})
-	}
-
-	// 2. Ambil context dari Fiber dan oper ke Usecase
-	ctx := c.UserContext()
-	if err := h.usecase.Register(ctx, &user); err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
-	}
-
-	return c.Status(201).JSON(fiber.Map{
-		"message": "User berhasil didaftarkan",
-		"data":    user,
-	})
-}
-
-// GetProfile: Handler buat ambil data profil
-// GetProfile: Handler buat ambil data profil
+// GetProfile: Satu-satunya handler untuk identitas karyawan
 func (h *UserHandler) GetProfile(c *fiber.Ctx) error {
-	// 1. Coba ambil dari Locals dulu (Hasil dari middleware NewAuthMiddleware)
+	// 1. Ambil data dari Locals (hasil kerja keras NewAuthMiddleware lo)
 	userLocal := c.Locals("currentUser")
-	if userLocal != nil {
-		return c.JSON(userLocal)
+	if userLocal == nil {
+		// Proteksi: Jika entah bagaimana Locals kosong, langsung tolak
+		return c.Status(401).JSON(fiber.Map{"error": "Identitas karyawan tidak ditemukan"})
 	}
 
-	// 2. Kalau Locals kosong (misal dipanggil manual via ID), baru ambil dari params
-	idParam := c.Params("id")
-	if idParam == "" {
-		return c.Status(400).JSON(fiber.Map{"error": "ID tidak ditemukan di URL atau Login"})
-	}
-
-	id, _ := strconv.Atoi(idParam)
-	ctx := c.UserContext()
-	user, err := h.usecase.GetProfile(ctx, uint(id))
-	if err != nil {
-		return c.Status(404).JSON(fiber.Map{"error": "User tidak ditemukan"})
-	}
-
+	// 2. Casting data ke struct User dan balikin sebagai JSON
+	user := userLocal.(domain.User)
 	return c.JSON(user)
 }
