@@ -18,7 +18,7 @@ func NewLeaveHandler(u domain.LeaveUsecase) *LeaveHandler {
 
 // apply leave
 func (h *LeaveHandler) Apply(c *fiber.Ctx) error {
-	// Kita pake struct temporary biar gampang parsing tanggal dari string JSON
+	// use temporary struct
 	var input struct {
 		UserID    uint   `json:"user_id"`
 		StartDate string `json:"start_date"`
