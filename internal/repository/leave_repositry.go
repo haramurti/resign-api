@@ -22,6 +22,7 @@ func (r *leaveRepository) Create(ctx context.Context, leave *domain.LeaveRequest
 
 func (r *leaveRepository) FetchAll(ctx context.Context) ([]domain.LeaveRequest, error) {
 	var leaves []domain.LeaveRequest
+
 	err := r.db.WithContext(ctx).Preload("User").Find(&leaves).Error
 	return leaves, err
 }
