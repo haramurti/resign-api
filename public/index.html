@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Internal — BCA System</title>
+    <title>BCA Internal — Minimalist</title>
     <style>
         :root {
-            --bg: #0b212a;     /* Bear Dark Mode Palette */
+            --bg: #0b212a;
             --text: #e0e0e0;
             --link: #82aaff;
             --border: #2a3f47;
@@ -15,96 +15,129 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
-            max-width: 650px;
-            margin: 40px auto;
-            padding: 0 20px;
+            background-color: var(--bg); color: var(--text); line-height: 1.6;
+            max-width: 650px; margin: 40px auto; padding: 0 20px;
         }
 
-        h1, h2, h3 { color: var(--accent); margin-bottom: 5px; }
+        /* Top Bar & Profile Link */
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .mono { font-family: monospace; font-size: 0.85em; color: #888; }
-        .hidden { display: none !important; }
+        .profile-link { color: var(--link); cursor: pointer; text-decoration: underline; margin-right: 10px; }
         
+        .login-btn { 
+            background: none; border: 1px solid var(--border); color: var(--link); 
+            padding: 5px 15px; cursor: pointer; font-size: 0.8em; transition: 0.2s;
+        }
+        .login-btn:hover { border-color: var(--link); color: #fff; }
+
         nav { margin-bottom: 40px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
         nav button { background: none; border: none; color: var(--link); cursor: pointer; text-decoration: underline; font-size: 0.9em; margin-right: 15px; }
         nav button.active { color: #fff; font-weight: bold; text-decoration: none; }
+        .hidden { display: none !important; }
+        
+        /* Modal Overlay */
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(11, 33, 42, 0.98); display: flex; justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal-card { width: 320px; border: 1px solid var(--border); padding: 30px; background: var(--bg); }
+
+        /* Profile Details Style */
+        .profile-info { margin: 20px 0; border-top: 1px dashed var(--border); padding-top: 15px; }
+        .info-row { display: flex; justify-content: space-between; font-size: 0.85em; margin-bottom: 8px; }
+        .info-label { color: #888; font-family: monospace; }
 
         input, textarea {
             background: #152d35; border: 1px solid var(--border); color: #fff;
-            padding: 10px; width: 100%; box-sizing: border-box; outline: none; border-radius: 0px; 
-            margin-bottom: 10px;
+            padding: 10px; width: 100%; box-sizing: border-box; outline: none; margin-bottom: 10px;
+            font-size: 0.9em;
         }
 
         button.action {
             background: var(--link); border: none; padding: 10px 20px;
-            color: var(--bg); font-weight: bold; cursor: pointer; margin-top: 10px;
+            color: var(--bg); font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px;
         }
 
-        .item { 
-            border-top: 1px dashed var(--border); 
-            padding: 20px 0; margin-top: 20px; 
-            display: flex; justify-content: space-between; align-items: flex-start; 
-        }
+        .item { border-top: 1px dashed var(--border); padding: 20px 0; display: flex; justify-content: space-between; align-items: flex-start; }
+        .status-badge { padding: 4px 10px; font-size: 0.65em; font-weight: bold; text-transform: uppercase; border-radius: 4px; }
+        .status-pending { background: #1a3a4a; color: #82aaff; }
+        .status-approved { background: #163a2a; color: #4ade80; }
 
-        .status-badge {
-            padding: 4px 10px; font-size: 0.65em; font-weight: bold; text-transform: uppercase;
-            border-radius: 4px; display: inline-flex; align-items: center; gap: 6px; border: 1px solid transparent;
-        }
-        .status-pending { background: #1a3a4a; color: #82aaff; border-color: #82aaff; }
-        .status-approved { background: #163a2a; color: #4ade80; border-color: #4ade80; }
-        .dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
-
-        footer { margin-top: 100px; font-size: 0.8em; color: #566970; border-top: 1px solid var(--border); padding-top: 20px; }
+        footer { margin-top: 80px; font-size: 0.8em; color: #566970; border-top: 1px solid var(--border); padding-top: 20px; }
     </style>
 </head>
 <body>
 
+    <div class="top-bar">
+        <span class="mono">
+            User: <b id="user-display">Guest</b> 
+            <span id="profile-trigger" class="profile-link hidden" onclick="toggleProfileModal()">[ View Profile ]</span>
+        </span>
+        <button id="auth-trigger" class="login-btn" onclick="toggleLoginModal()">Login</button>
+    </div>
+
     <header>
-        <h1>ʕ•ᴥ•? BCA Internal Form</h1>
-        <p class="mono text-xs">Logged in as: <b id="user-display">Guest</b> (<span id="role-display">None</span>)</p>
-        
+        <h1>ʕ•ᴥ•? BCA Internal</h1>
         <nav id="main-nav">
-            <button id="nav-leave" class="active" onclick="showTab('leave')">Apply Leave</button>
+            <button id="nav-leave" class="active" onclick="showTab('leave')">Leave</button>
             <button id="nav-resign" onclick="showTab('resign')">Resignation</button>
-            <button id="nav-history" onclick="showTab('history')">My History</button>
+            <button id="nav-history" onclick="showTab('history')">History</button>
             <button id="nav-admin" class="hidden" onclick="showTab('admin')">Admin Panel</button>
         </nav>
     </header>
 
-    <main>
-        <div id="tab-leave" class="form-group">
+    <div id="login-overlay" class="overlay hidden">
+        <div class="modal-card">
+            <h3 class="mono"># Authentication</h3>
+            <input type="email" id="login-email" placeholder="Email (admin@bca.com)">
+            <input type="password" id="login-pass" placeholder="Password">
+            <button class="action" onclick="performLogin()">SIGN IN</button>
+            <p onclick="toggleLoginModal()" style="font-size: 0.7em; cursor: pointer; text-align: center; margin-top: 15px; color: #566970;">[ Close ]</p>
+        </div>
+    </div>
+
+    <div id="profile-overlay" class="overlay hidden">
+        <div class="modal-card">
+            <h3 class="mono"># Employee Profile</h3>
+            <div class="profile-info" id="profile-details">
+                <div class="info-row"><span class="info-label">NAME</span><span id="prof-name">-</span></div>
+                <div class="info-row"><span class="info-label">ROLE</span><span id="prof-role">-</span></div>
+                <div class="info-row"><span class="info-label">QUOTA</span><span id="prof-quota">-</span></div>
+                <div class="info-row"><span class="info-label">EMAIL</span><span id="prof-email" style="font-size: 0.8em;">-</span></div>
+            </div>
+            <button class="action" onclick="toggleProfileModal()">BACK TO SYSTEM</button>
+        </div>
+    </div>
+
+    <main id="app-content" class="hidden">
+        <div id="tab-leave" class="tab-content">
             <h3># Request Leave</h3>
-            <label class="mono">START DATE</label>
             <input type="date" id="leave-start">
-            <label class="mono">RETURN DATE</label>
             <input type="date" id="leave-return">
             <textarea id="leave-reason" placeholder="Reason for leave..."></textarea>
-            <button class="action" onclick="submitLeave()">Submit Leave</button>
+            <button class="action" onclick="submitLeave()">SUBMIT LEAVE</button>
         </div>
 
-        <div id="tab-resign" class="form-group hidden">
-            <h3># Resignation Notice</h3>
-            <label class="mono">LAST WORKING DAY</label>
+        <div id="tab-resign" class="tab-content hidden">
+            <h3># Resignation</h3>
             <input type="date" id="resign-date">
             <textarea id="resign-reason" placeholder="Reason for leaving..."></textarea>
-            <button class="action" onclick="submitResign()">Submit Resignation</button>
+            <button class="action" onclick="submitResign()">SUBMIT RESIGNATION</button>
         </div>
 
-        <div id="tab-history" class="hidden">
-            <h3># Your History</h3>
+        <div id="tab-history" class="tab-content hidden">
+            <h3># My History</h3>
             <div id="personal-history-list"></div>
         </div>
 
-        <div id="tab-admin" class="hidden">
-            <h3># HR Admin Panel</h3>
+        <div id="tab-admin" class="tab-content hidden">
+            <h3># Admin Overview</h3>
             <div id="admin-global-list"></div>
         </div>
     </main>
 
     <footer>
-        <p>Built for POROS 2026 by Neval. <br> Powered by MacBook Air M4.</p>
+        <p>Built for Personal Project 2026 by Neval. <br> System: Go-Fiber + Supabase.</p>
     </footer>
 
     <script>
@@ -112,155 +145,121 @@
         let authHeader = "";
         let currentUser = null;
 
-        // Gerbang utama login
-        async function doLogin() {
-            const email = prompt("Enter Company Email:");
-            const pass = prompt("Enter Password:");
-            if(!email || !pass) return doLogin();
-            
+        function toggleLoginModal() { document.getElementById('login-overlay').classList.toggle('hidden'); }
+        function toggleProfileModal() { document.getElementById('profile-overlay').classList.toggle('hidden'); }
+
+        async function performLogin() {
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-pass').value;
+            if(!email || !pass) return alert("Fill all fields.");
+
             authHeader = "Basic " + btoa(email + ":" + pass);
 
             try {
-                const res = await fetch(`${api}/me`, {
-                    headers: { "Authorization": authHeader }
-                });
-
+                const res = await fetch(`${api}/me`, { headers: { "Authorization": authHeader } });
                 if (res.ok) {
                     currentUser = await res.json();
                     
-                    // Validasi: Pastikan ID bukan 0
-                    if (!currentUser.ID || currentUser.ID === 0) {
-                        alert("Database Error: User ID is 0. Check your SQL seed!");
-                        return;
-                    }
-
                     document.getElementById('user-display').innerText = currentUser.name;
-                    document.getElementById('role-display').innerText = currentUser.role;
+                    document.getElementById('auth-trigger').innerText = "Logout";
+                    document.getElementById('auth-trigger').onclick = logout;
+                    document.getElementById('app-content').classList.remove('hidden');
+                    document.getElementById('profile-trigger').classList.remove('hidden'); // Show profile link
 
-                    // Tampilkan tab admin hanya untuk HR/Manager
+                    // Populate Profile Modal
+                    document.getElementById('prof-name').innerText = currentUser.name;
+                    document.getElementById('prof-role').innerText = currentUser.role.toUpperCase();
+                    document.getElementById('prof-quota').innerText = currentUser.leave_quota + " Days";
+                    document.getElementById('prof-email').innerText = currentUser.email;
+
                     if (currentUser.role === 'hr' || currentUser.role === 'manager') {
                         document.getElementById('nav-admin').classList.remove('hidden');
                     }
-                    
-                    // Load data awal setelah login sukses
-                    loadHistory();
-                } else {
-                    alert("Gmail atau Password salah!");
-                    return doLogin();
-                }
-            } catch (err) {
-                console.error("Login Error:", err);
-                alert("Connection Error. Backend mati?");
-            }
+
+                    toggleLoginModal();
+                    showTab('leave');
+                } else { alert("Invalid Credentials!"); }
+            } catch (err) { alert("Connection failed."); }
         }
 
-        function showTab(tab) {
-            ['leave', 'resign', 'history', 'admin'].forEach(t => {
-                const el = document.getElementById(`tab-${t}`);
-                const nav = document.getElementById(`nav-${t}`);
-                if (el) el.classList.toggle('hidden', t !== tab);
-                if (nav) nav.classList.toggle('active', t === tab);
-            });
-            if(tab === 'history') loadHistory();
-            if(tab === 'admin') loadAdmin();
+        function logout() {
+            authHeader = ""; currentUser = null;
+            location.reload();
+        }
+
+        function showTab(name) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + name).classList.remove('hidden');
+            document.getElementById('nav-' + name).classList.add('active');
+            if(name === 'history') loadHistory();
+            if(name === 'admin') loadAdmin();
         }
 
         async function fetchWithAuth(url, options = {}) {
             options.headers = { ...options.headers, "Authorization": authHeader };
             const res = await fetch(url, options);
-            if(res.status === 401 || res.status === 403) {
-                alert("Access Denied!");
-                return null;
-            }
+            if(res.status === 401 || res.status === 403) { logout(); return null; }
             return res;
         }
 
         async function submitLeave() {
-            if (!currentUser) return;
             const start = document.getElementById('leave-start').value;
             const end = document.getElementById('leave-return').value;
-            const resn = document.getElementById('leave-reason').value;
-            if(!start || !end || !resn) return alert("Fill all fields.");
-
-            const res = await fetchWithAuth(`${api}/leaves`, {
+            const reason = document.getElementById('leave-reason').value;
+            if(!start || !end || !reason) return alert("Fill all fields.");
+            await fetchWithAuth(`${api}/leaves`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_id: currentUser.ID, start_date: start, end_date: end, reason: resn })
+                body: JSON.stringify({ user_id: currentUser.ID, start_date: start, end_date: end, reason: reason })
             });
-            if(res) showTab('history');
+            showTab('history');
         }
 
         async function submitResign() {
-            if (!currentUser) return;
             const date = document.getElementById('resign-date').value;
-            const resn = document.getElementById('resign-reason').value;
-            if(!date || !resn) return alert("Fill all fields.");
-
-            const res = await fetchWithAuth(`${api}/resignations`, {
+            const reason = document.getElementById('resign-reason').value;
+            if(!date || !reason) return alert("Fill all fields.");
+            await fetchWithAuth(`${api}/resignations`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_id: currentUser.ID, reason: `[Exit: ${date}] ${resn}` })
+                body: JSON.stringify({ user_id: currentUser.ID, reason: `[LWD: ${date}] ${reason}` })
             });
-            if(res) showTab('history');
+            showTab('history');
         }
 
         async function loadHistory() {
-            // Proteksi: Jangan tembak API kalau ID belum ada (ID=0)
-            if (!currentUser || !currentUser.ID) return;
-
-            const list = document.getElementById('personal-history-list');
-            const [resL, resR] = await Promise.all([
-                fetchWithAuth(`${api}/leaves`),
-                fetchWithAuth(`${api}/resignations`)
-            ]);
-            
+            const [resL, resR] = await Promise.all([fetchWithAuth(`${api}/leaves`), fetchWithAuth(`${api}/resignations`)]);
             if(!resL || !resR) return;
-            
             const leaves = await resL.json();
             const resigns = await resR.json();
-            
+            const list = document.getElementById('personal-history-list');
             let html = '';
-            // Filter hanya milik user yang sedang login
             leaves.filter(l => l.user_id === currentUser.ID).forEach(l => {
                 html += `<div class="item"><div><span class="mono">LEAVE</span><p>${l.reason}</p></div><div class="status-badge status-${l.status}">${l.status}</div></div>`;
             });
             resigns.filter(r => r.user_id === currentUser.ID).forEach(r => {
                 html += `<div class="item"><div><span class="mono">RESIGN</span><p>${r.reason}</p></div><div class="status-badge status-${r.status}">${r.status}</div></div>`;
             });
-            list.innerHTML = html || '<p class="mono italic">No history found.</p>';
+            list.innerHTML = html || '<p class="mono">No history found.</p>';
         }
 
         async function loadAdmin() {
-            const list = document.getElementById('admin-global-list');
-            const [resL, resR] = await Promise.all([
-                fetchWithAuth(`${api}/leaves`),
-                fetchWithAuth(`${api}/resignations`)
-            ]);
-            if(!resL || !resR) return;
-
+            const [resL, resR] = await Promise.all([fetchWithAuth(`${api}/leaves`), fetchWithAuth(`${api}/resignations`)]);
             const leaves = await resL.json();
             const resigns = await resR.json();
-            
+            const list = document.getElementById('admin-global-list');
             let html = '';
             [...leaves, ...resigns.map(r => ({...r, isR: true}))].forEach(i => {
-                html += `<div class="item"><div><b>EMP ID: ${i.user_id}</b> — ${i.isR ? 'RESIGN' : 'LEAVE'}<p>${i.reason}</p>`;
-                if(i.status === 'pending') {
-                    const type = i.isR ? 'resignations' : 'leaves';
-                    html += `<button onclick="approve('${type}', ${i.ID})" style="color:var(--link); text-decoration:underline; background:none; border:none; cursor:pointer; padding:0;">[APPROVE]</button>`;
-                }
-                html += `</div><div class="status-badge status-${i.status}">${i.status}</div></div>`;
+                html += `<div class="item"><div><b>EMP: ${i.user_id}</b> — ${i.isR ? 'RESIGN' : 'LEAVE'}<p>${i.reason}</p>${i.status === 'pending' ? `<button onclick="approve('${i.isR ? 'resignations' : 'leaves'}', ${i.ID})" style="color:var(--link); cursor:pointer; background:none; border:none; padding:0; text-decoration:underline;">[APPROVE]</button>` : ''}</div><div class="status-badge status-${i.status}">${i.status}</div></div>`;
             });
-            list.innerHTML = html || 'No pending tasks.';
+            list.innerHTML = html || '<p class="mono">All clear.</p>';
         }
 
         async function approve(type, id) {
-            // Pastikan rute admin sesuai dengan wiring di main.go
             await fetchWithAuth(`${api}/admin/${type}/${id}/approve`, { method: 'PATCH' });
             loadAdmin();
         }
-
-        // Jalankan login saat window dimuat
-        window.onload = doLogin;
     </script>
 </body>
 </html>
