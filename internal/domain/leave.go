@@ -10,7 +10,7 @@ import (
 type LeaveRequest struct {
 	gorm.Model
 	UserID    uint      `gorm:"not null" json:"user_id"`
-	User      User      `gorm:"foreignKey:UserID" json:"-"`
+	User      User      `gorm:"foreignKey:UserID" json:"User"`
 	Reason    string    `gorm:"type:text;not null" json:"reason"`
 	StartDate time.Time `gorm:"not null" json:"start_date"`
 	EndDate   time.Time `gorm:"not null" json:"end_date"`

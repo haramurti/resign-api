@@ -19,7 +19,6 @@
             max-width: 650px; margin: 40px auto; padding: 0 20px;
         }
 
-        /* Top Bar & Profile Link */
         .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .mono { font-family: monospace; font-size: 0.85em; color: #888; }
         .profile-link { color: var(--link); cursor: pointer; text-decoration: underline; margin-right: 10px; }
@@ -35,14 +34,12 @@
         nav button.active { color: #fff; font-weight: bold; text-decoration: none; }
         .hidden { display: none !important; }
         
-        /* Modal Overlay */
         .overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(11, 33, 42, 0.98); display: flex; justify-content: center; align-items: center; z-index: 1000;
         }
         .modal-card { width: 320px; border: 1px solid var(--border); padding: 30px; background: var(--bg); }
 
-        /* Profile Details Style */
         .profile-info { margin: 20px 0; border-top: 1px dashed var(--border); padding-top: 15px; }
         .info-row { display: flex; justify-content: space-between; font-size: 0.85em; margin-bottom: 8px; }
         .info-label { color: #888; font-family: monospace; }
@@ -62,6 +59,7 @@
         .status-badge { padding: 4px 10px; font-size: 0.65em; font-weight: bold; text-transform: uppercase; border-radius: 4px; }
         .status-pending { background: #1a3a4a; color: #82aaff; }
         .status-approved { background: #163a2a; color: #4ade80; }
+        .status-rejected { background: #3a1a1a; color: #ff6b6b; }
 
         footer { margin-top: 80px; font-size: 0.8em; color: #566970; border-top: 1px solid var(--border); padding-top: 20px; }
     </style>
@@ -159,14 +157,12 @@
                 const res = await fetch(`${api}/me`, { headers: { "Authorization": authHeader } });
                 if (res.ok) {
                     currentUser = await res.json();
-                    
                     document.getElementById('user-display').innerText = currentUser.name;
                     document.getElementById('auth-trigger').innerText = "Logout";
                     document.getElementById('auth-trigger').onclick = logout;
                     document.getElementById('app-content').classList.remove('hidden');
-                    document.getElementById('profile-trigger').classList.remove('hidden'); // Show profile link
+                    document.getElementById('profile-trigger').classList.remove('hidden');
 
-                    // Populate Profile Modal
                     document.getElementById('prof-name').innerText = currentUser.name;
                     document.getElementById('prof-role').innerText = currentUser.role.toUpperCase();
                     document.getElementById('prof-quota').innerText = currentUser.leave_quota + " Days";
@@ -175,17 +171,13 @@
                     if (currentUser.role === 'hr' || currentUser.role === 'manager') {
                         document.getElementById('nav-admin').classList.remove('hidden');
                     }
-
                     toggleLoginModal();
                     showTab('leave');
                 } else { alert("Invalid Credentials!"); }
             } catch (err) { alert("Connection failed."); }
         }
 
-        function logout() {
-            authHeader = ""; currentUser = null;
-            location.reload();
-        }
+        function logout() { location.reload(); }
 
         function showTab(name) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
@@ -249,14 +241,52 @@
             const leaves = await resL.json();
             const resigns = await resR.json();
             const list = document.getElementById('admin-global-list');
+            
+            const diffDays = (s, e) => {
+                const start = new Date(s);
+                const end = new Date(e);
+                return Math.ceil(Math.abs(end - start) / (1000 * 60 * 60 * 24)) + 1;
+            };
+
             let html = '';
-            [...leaves, ...resigns.map(r => ({...r, isR: true}))].forEach(i => {
-                html += `<div class="item"><div><b>EMP: ${i.user_id}</b> — ${i.isR ? 'RESIGN' : 'LEAVE'}<p>${i.reason}</p>${i.status === 'pending' ? `<button onclick="approve('${i.isR ? 'resignations' : 'leaves'}', ${i.ID})" style="color:var(--link); cursor:pointer; background:none; border:none; padding:0; text-decoration:underline;">[APPROVE]</button>` : ''}</div><div class="status-badge status-${i.status}">${i.status}</div></div>`;
+            const allData = [
+                ...leaves.map(l => ({...l, isR: false})),
+                ...resigns.map(r => ({...r, isR: true}))
+            ].sort((a, b) => (a.status === 'pending' ? -1 : 1));
+
+            allData.forEach(i => {
+                const user = i.User || { name: `Unknown ID: ${i.user_id}`, email: '-', role: '-' };
+                const type = i.isR ? 'RESIGNATION' : 'LEAVE';
+                let dateInfo = i.isR ? "" : `<div class="mono" style="font-size:0.75em; color:var(--link); margin-top:5px;">${i.start_date.split('T')[0]} — ${i.end_date.split('T')[0]} (${diffDays(i.start_date, i.end_date)} Days)</div>`;
+
+                html += `
+                    <div class="item">
+                        <div style="flex: 1;">
+                            <span class="mono" style="color:#888; font-size:0.7em;">${type}</span>
+                            <div style="margin:5px 0;">
+                                <b style="font-size:1.1em;">${user.name}</b> 
+                                <span class="mono" style="font-size:0.7em;">(${user.role.toUpperCase()})</span>
+                            </div>
+                            <div class="mono" style="font-size:0.75em; margin-bottom:8px;">${user.email}</div>
+                            <p style="margin:10px 0; color:#ccc; font-style:italic;">"${i.reason}"</p>
+                            ${dateInfo}
+                            ${i.status === 'pending' ? `
+                                <div style="margin-top:15px;">
+                                    <button onclick="approve('${i.isR ? 'resignations' : 'leaves'}', ${i.ID})" 
+                                            style="color:var(--link); cursor:pointer; background:none; border:1px solid var(--border); padding:5px 10px; font-size:0.75em; margin-right:10px;">
+                                        [ APPROVE ]
+                                    </button>
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div class="status-badge status-${i.status}">${i.status}</div>
+                    </div>`;
             });
             list.innerHTML = html || '<p class="mono">All clear.</p>';
         }
 
         async function approve(type, id) {
+            if(!confirm(`Approve this ${type}?`)) return;
             await fetchWithAuth(`${api}/admin/${type}/${id}/approve`, { method: 'PATCH' });
             loadAdmin();
         }
