@@ -8,6 +8,8 @@ import (
 	"resign-api/internal/repository"
 	"resign-api/internal/usecase"
 
+	"github.com/gofiber/fiber/v2/middleware/logger"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
 )
@@ -33,6 +35,7 @@ func main() {
 	resignHdl := handler.NewResignationHandler(resignUC)
 
 	app := fiber.New()
+	app.Use(logger.New())
 	app.Static("/", "./public")
 
 	//middlewares
