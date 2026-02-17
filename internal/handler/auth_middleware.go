@@ -10,6 +10,10 @@ import (
 
 func NewAuthMiddleware(userRepo domain.UserRepository) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		if c.Method() == "OPTIONS" {
+			return c.SendStatus(fiber.StatusNoContent)
+		}
+
 		auth := c.Get("Authorization")
 		if auth == "" || !strings.HasPrefix(auth, "Basic ") {
 			return c.Status(401).JSON(fiber.Map{"error": "Login required"})

@@ -8,6 +8,7 @@ import (
 	"resign-api/internal/repository"
 	"resign-api/internal/usecase"
 
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 
 	"github.com/gofiber/fiber/v2"
@@ -35,6 +36,11 @@ func main() {
 	resignHdl := handler.NewResignationHandler(resignUC)
 
 	app := fiber.New()
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "*",
+		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
+		AllowMethods: "GET, POST, PATCH, DELETE, OPTIONS",
+	}))
 	app.Use(logger.New())
 	app.Static("/", "./public")
 
