@@ -14,16 +14,28 @@ spec:
     spec:
       containers:
       - name: backend
-        image: resign-api-backend:v6 # Pastiin tag-nya sesuai versi terakhir lo
+        image: resign-api-backend:v10 
         imagePullPolicy: Never 
         ports:
         - containerPort: 8686
         env:
         - name: DATABASE_URL
           value: "postgresql://postgres.ehfpuftaavkbjufvmxtm:wesfuh-Xodba8-sovroj@aws-1-ap-northeast-2.pooler.supabase.com:5432/postgres"
-        # RESOURCES HARUS DI SINI (Sejajar sama env, di bawah name/image)
         resources:
           limits:
             cpu: "200m"    
           requests:
             cpu: "100m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: resign-api-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: resign-api
+  ports:
+    - protocol: TCP
+      port: 8686       # Pintu masuk luar (Skrg pake 8686)
+      targetPort: 8686 # Pintu masuk container Go lo
