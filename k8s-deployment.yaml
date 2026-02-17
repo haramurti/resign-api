@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: resign-api-deployment
 spec:
-  replicas: 1 # Kita mulai dari 1 pod dulu
+  replicas: 1 
   selector:
     matchLabels:
       app: resign-api
@@ -14,11 +14,16 @@ spec:
     spec:
       containers:
       - name: backend
-        image: resign-api-backend:v3 # Pake image yang barusan lo build
-        imagePullPolicy: Never # Paksa K8s pake image lokal dari OrbStack
+        image: resign-api-backend:v6 # Pastiin tag-nya sesuai versi terakhir lo
+        imagePullPolicy: Never 
         ports:
         - containerPort: 8686
         env:
-        # Masukin ENV Supabase lo di sini biar apps bisa konek
         - name: DATABASE_URL
           value: "postgresql://postgres.ehfpuftaavkbjufvmxtm:wesfuh-Xodba8-sovroj@aws-1-ap-northeast-2.pooler.supabase.com:5432/postgres"
+        # RESOURCES HARUS DI SINI (Sejajar sama env, di bawah name/image)
+        resources:
+          limits:
+            cpu: "200m"    
+          requests:
+            cpu: "100m"
