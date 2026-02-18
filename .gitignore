@@ -1,1 +1,4 @@
 .env
+# Abaikan folder runner lokal
+actions-runner/
+k8s-configs.yaml
