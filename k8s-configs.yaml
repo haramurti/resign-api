@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: supabase-secret
+type: Opaque
+stringData:
+  # Ganti "your_real_password_here" pake password database Supabase lo
+  # K8s bakal otomatis nge-encode ini jadi Base64 biar aman
+  db-password: "wesfuh-Xodba8-sovroj" 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: resign-api-service
+spec:
+  selector:
+    app: resign-api
+  ports:
+    - protocol: TCP
+      port: 80         # Di browser lo tinggal buka 'localhost' tanpa port ribet
+      targetPort: 8686 # Port yang dipake aplikasi Go lo
+  type: LoadBalancer   # OrbStack bakal otomatis mapping ini ke localhost lo

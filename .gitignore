@@ -2,3 +2,4 @@
 # Abaikan folder runner lokal
 actions-runner/
 k8s-configs.yaml
+k8s-deployment.yaml
