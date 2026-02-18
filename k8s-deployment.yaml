@@ -37,5 +37,5 @@ spec:
     app: resign-api
   ports:
     - protocol: TCP
-      port: 8686       # Pintu masuk luar (Skrg pake 8686)
-      targetPort: 8686 # Pintu masuk container Go lo
+      port: 8686       
+      targetPort: 8686 
