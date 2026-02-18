@@ -2,7 +2,7 @@ name: CI/CD Pipeline POROS
 
 on:
   push:
-    branches: [ main ] # Pipeline jalan tiap lo push ke branch main
+    branches: [ master ] # Pipeline jalan tiap lo push ke branch main
 
 jobs:
   build-and-push:
