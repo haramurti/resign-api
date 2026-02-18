@@ -1,8 +1,7 @@
-# Pake Nginx biar enteng kayak MacBook M4 lo
+#use nginx
 FROM nginx:alpine
 
-# Copy file HTML lo ke folder default Nginx
-# Kalau index.html ada di dalem folder 'public'
+# Copy html file to nginx
 COPY public/index.html /usr/share/nginx/html/index.html
 
 EXPOSE 80

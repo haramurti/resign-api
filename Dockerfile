@@ -1,20 +1,20 @@
 # --- STAGE 1: Build Stage ---
 FROM golang:1.25-alpine AS builder
 
-# Install git & ca-certificates buat koneksi HTTPS ke Supabase
+# Install git & ca-certificates to connect to supabase
 RUN apk add --no-cache git ca-certificates
 
 WORKDIR /app
 
-# Copy dependency files duluan biar build-nya cepet (cached)
+# Copy dependency files 
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copy semua source code
+# Copy all source code
 COPY . .
 
-# Build aplikasi jadi binary "main"
-# CGO_ENABLED=0 penting biar binary-nya statis & jalan di Alpine
+# translating to binary
+# CGO_ENABLED=0 so the binary can run Alpine
 RUN CGO_ENABLED=0 GOOS=linux go build -o main ./cmd/main.go
 
 # --- STAGE 2: Final Image ---
@@ -25,14 +25,14 @@ RUN apk --no-cache add ca-certificates tzdata
 
 WORKDIR /root/
 
-# Ambil hasil build dari Stage 1
+# get result from first tage
 COPY --from=builder /app/main .
 
-# Copy folder public (Frontend lo wajib ikut!)
+# Copy public folder
 COPY --from=builder /app/public ./public
 
-# Expose port sesuai settingan Go lo
+# Expose port 
 EXPOSE 8686
 
-# Jalankan aplikasi
+# runn app
 CMD ["./main"]
