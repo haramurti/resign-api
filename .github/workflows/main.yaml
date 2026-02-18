@@ -43,3 +43,5 @@ jobs:
         run: |
           kubectl rollout restart deployment resign-api-deployment
           kubectl rollout restart deployment resign-api-frontend
+
+# Ini trik biar nembak ke laptop 
