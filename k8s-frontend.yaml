@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: frontend-container
-        image: resign-api-frontend:latest
+        image: nevalhr/resign-api-frontend:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 80
