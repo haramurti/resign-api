@@ -15,7 +15,7 @@ spec:
       containers:
       - name: frontend-container
         image: resign-api-frontend:v9
-        imagePullPolicy: Never
+        imagePullPolicy: Always
         ports:
         - containerPort: 80
 ---
